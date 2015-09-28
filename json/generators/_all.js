@@ -1,0 +1,2 @@
+
+var stringGeneraor = require('./String');

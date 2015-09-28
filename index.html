@@ -1,0 +1,192 @@
+<html>
+<head lang="en">
+    <meta charset="utf-8">
+    <title>JSON Schema 4 to JSON Generator</title>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <link href='http://fonts.googleapis.com/css?family=Poiret+One' rel='stylesheet' type='text/css'>
+    <link href="lib/jquery-linedtextarea.css" type="text/css" rel="stylesheet" />
+    <script src="lib/jquery-linedtextarea.js"></script>
+    <script src="ZeroClipboard.min.js"></script>
+
+	
+<script>
+    function copyToclipboard(){
+//        var holdText = document.getElementById("holdtext");
+//        holdText.innerText = document.getElementById("jsondata").value;
+//        var Copied = holdText.createTextRange();
+//        Copied.execCommand("Copy");
+//        alert("done");
+
+        var client = new ZeroClipboard( document.getElementById("copy-button") );
+
+    }
+
+    function toggleOverlay(){
+        var overlay = document.getElementById('overlay');
+        overlay.style.opacity = .8;
+        if(overlay.style.display == "block"){
+            overlay.style.display = "none";
+        } else {
+            overlay.style.display = "block";
+        }
+    }
+        function generateJSON(){
+//            document.getElementById("copylink").style.visibility = "hidden";
+            document.getElementById("jsondata").innerHTML = "";
+            var data = document.getElementById("schema").value;
+            var arrlength = document.getElementById("arrlength").value;
+            if(!arrlength){
+                arrlength = 0;
+            }
+            if(!data){
+                alert('Enter valid JSON');
+                return;
+            }else{
+                try{
+                    JSON.parse(data);
+                    document.getElementById("jsondata").innerHTML = "";
+                }
+                catch(ex){
+                    document.getElementById("jsondata").innerHTML = ex;                }
+            }
+            console.log(JSON.parse(data));
+            try{
+                toggleOverlay();
+                $.ajax({
+
+                    url: '/?n='+arrlength,
+                    headers: {
+                        'Content-Type':'application/json'
+                    },
+                    method: 'POST',
+                    dataType: 'jsonp',
+                    data: data,
+                    success: function(resData){
+                        toggleOverlay();
+                        console.log('success: '+resData);
+                        document.getElementById("jsondata").innerHTML = JSON.stringify(resData, null, 4);
+//                        $('copylink').show();
+                      document.getElementById("copylink").style.visibility = "visible";
+                    },
+                    failure: function(error){
+                        toggleOverlay();
+                        console.log('failure: '+error);
+                    }
+                });
+
+
+            }
+            catch(ex){
+                console.error(ex);
+                document.getElementById("errorDiv").innerHTML = ex.message;
+            }
+        }
+    </script>
+
+<style type="text/css">
+    @font-face {
+        font-family: PT_Sans;
+        src: url(lib/fonts/PT_Sans-Narrow-Web-Regular.ttf);
+        font-weight: bold;
+    }
+
+body,td,th {
+	/*font-family: Cambria, "Hoefler Text", "Liberation Serif", Times, "Times New Roman", serif;*/
+    font-family: PT_Sans;
+    color: #222d40;
+	text-align: center;
+
+}
+
+
+p{
+    font-size: large;
+    font-weight: bolder;
+}
+
+body {
+	background-color: rgba(244, 244, 244, 0.58);
+	margin-left: 40px;
+	margin-top: 40px;
+	margin-right: 40px;
+	margin-bottom: 40px;
+	text-align: left;
+}
+
+div#overlay {
+    display: none;
+    z-index: 2;
+    background: #a6c0d6;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0px;
+    left: 0px;
+    text-align: center;
+    vertical-align: middle;
+    opacity: 0.4;
+}
+
+</style>
+</head>
+<body>
+<div id="overlay">
+    <img src="lib/spinner-blue.gif" height="100px" width="100px">
+</div>
+<h2 align="center">{&nbsp;&nbsp;JSON Schema to JSON data Generator&nbsp;&nbsp;}</h2>
+<hr>
+<table align="center">
+    <tr>
+        <td><p style="color: blue">JSON Schema</p></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td><p style="color: blue">JSON Data</p></td>
+    </tr>
+    <tr>
+        <td style="text-align: end"> array.length = <input type="number" id="arrlength" maxlength="3" style="width: 45px" min="0" max="999"></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td style="text-align: end">
+            <!--<a id="copylink" href="#" onclick="copyToclipboard()" style="visibility: visible">copy to clipboard</a>-->
+            <!--<button id="copy-button" data-clipboard-text="Copy Me!" title="Click to copy me.">Copy to Clipboard</button>-->
+
+        </td>
+    </tr>
+    <tr>
+        <td><textarea name="schema" id="schema" class="lined" style="width: 600px; height: 400px; background-color: #e8e8e8"></textarea> </td>
+        <td>&nbsp;</td>
+        <td style="text-align: center"><input type="button" value="Generate JSON >> " onclick="generateJSON()"></td>
+        <td>&nbsp;</td>
+        <td><textarea name="jsondata" id="jsondata" class="lined" style="width: 600px; height: 400px; background-color: #e8e8e8" readonly></textarea></td>
+    </tr>
+
+    <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td><textarea id="holdtext" style="visibility: hidden" hidden="true"></textarea> </td>
+        <td><div id="errorDiv" style="color : red"></div></td>
+    </tr>
+
+</table>
+<hr>
+<h3>Rest API Reference</h3>
+<p>/ ( <b>POST</b> ) </p>
+<p>n = URL parmeter, If you would like to genenrate an array of empty JSON data.</p>
+<p>body : Body should containt valid JSON schema (<a href="http://tools.ietf.org/html/draft-zyp-json-schema-04?app=alok" target="new">draft 4</a>) </p>
+<hr>
+<p style="text-align: center">Created by : <a href="https://twitter.com/aalokism">@aalokism</a>, Please <a href="mailto:aloksguha@gmail.com">Mail me</a> for forks and suggestions</p>
+
+
+
+</body>
+<script>
+$(function() {
+	$(".lined").linedtextarea(
+		{selectedLine: 1}
+	);
+});
+</script>
+</html>
